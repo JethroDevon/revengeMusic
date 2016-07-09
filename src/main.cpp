@@ -17,7 +17,7 @@
   #include <unistd.h>
   #include <pwd.h>
   #include <sys/types.h>
-#elif __WIN32
+#elif _WIN32
   #include <windows.h>
 #else
   #ERROR "Incompatible OS"
@@ -61,7 +61,7 @@ int main( int argc, char *argv[]) {
                 return -1;
             }
         }
-        #elif __WIN32
+        #elif _WIN32
           char home_dir_buf[100];
           if(GetEnvironmentVariable("HOMEPATH",home_dir_buf,100) == 0) {
               SysError::Print("Could not find home directory!");

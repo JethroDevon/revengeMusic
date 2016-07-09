@@ -1,7 +1,7 @@
 #ifndef PIPE_H
 #define PIPE_H
 
-#ifdef __WIN32
+#ifdef _WIN32
   #include <windows.h>
 #endif
 
@@ -27,7 +27,7 @@ class Pipe{
     std::string GetMessage();
 
   private:
-    #ifdef __WIN32
+    #ifdef _WIN32
       HANDLE mutexHandle;
       HANDLE pipeHandle;
     #endif
