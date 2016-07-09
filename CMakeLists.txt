@@ -21,6 +21,7 @@ add_executable(
   src/main.cpp
   src/Windows/Pipe.cpp
   src/Sound.cpp
+  src/SysError.cpp
 )
 ELSEIF(UNIX)
 add_executable(
@@ -28,6 +29,7 @@ add_executable(
   src/main.cpp
   src/Linux/Pipe.cpp
   src/Sound.cpp
+  src/SysError.cpp
 )
 ENDIF(WIN32)
 
