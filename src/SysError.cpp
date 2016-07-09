@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <cstdio>
 
 #ifdef __unix
     #include <cerrno>
@@ -52,6 +53,7 @@ static std::string LastErrorToString() {
 namespace SysError {
     std::stringstream error_msg;
     bool error_set = false;
+	bool logging = false;
 
     void Set(std::string msg) {
         error_msg << msg << "\n"
@@ -65,9 +67,14 @@ namespace SysError {
         std::cerr << error_msg.str() << std::endl;
     }
     
-    void Log(std::string msg) {
-        if(!error_set)
-            Set(msg);
-        //TODO
+    void Log() {
+		if(!logging) {
+			logging = true;
+			freopen("error.txt", "w", stderr);
+		}
+		else {
+			logging = false;
+			fclose(stderr);
+		}
     }
 }

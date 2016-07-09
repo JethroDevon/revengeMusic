@@ -27,8 +27,14 @@ int main( int argc, char *argv[]) {
     
     #ifdef __unix
         errno = 0;
+	#elif _WIN32
+		SetLastError(0);
     #endif
-
+	
+	#ifdef RELEASE
+		SysError::Log();
+	#endif
+	
     Pipe pipe("/tmp/fifo");
 
     if(!pipe.isOnlyInstance()) {
