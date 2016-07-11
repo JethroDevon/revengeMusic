@@ -6,11 +6,7 @@
 #include "fmod_errors.h"
 
 #include <string>
-#include <cstring>
-#include <stdio.h>
-#include <errno.h>
 #include <iostream>
-#include <cwchar>
 
 //standard unix headers, need this to get present working directory
 #ifdef __unix
@@ -18,10 +14,12 @@
   #include <unistd.h>
   #include <pwd.h>
   #include <sys/types.h>
+  #include <errno.h>
 #elif _WIN32
   #include <windows.h>
   #include <Knownfolders.h>
   #include <Shlobj.h>
+  #include <cwchar>
 #else
   #ERROR "Incompatible OS"
 #endif
@@ -29,14 +27,14 @@
 int main( int argc, char *argv[]) {
 
     #ifdef __unix
-        errno = 0;
-	#elif _WIN32
-		SetLastError(0);
+      errno = 0;
+    #elif _WIN32
+      SetLastError(0);
     #endif
 
-	#ifdef RELEASE
-		SysError::Log();
-	#endif
+    #ifdef RELEASE
+      SysError::Log();
+    #endif
 
     Pipe pipe("/tmp/fifo");
 
@@ -51,51 +49,55 @@ int main( int argc, char *argv[]) {
     } else if(pipe.isOnlyInstance()) {
 
         if(argv[1] == NULL) {
-            std::cerr << "Error track name invalied" << std::endl;
+            std::cerr << "Error track name invalid" << std::endl;
             return -2;
         }
 
         std::string music_dir;
-        const char* home_dir;
-        std::string track = argv[1];
+        std::string track_dir;
+        std::string track_name = argv[1];
 
         //Get home directory of user
         #ifdef __unix
-          home_dir = getenv("HOME");
-        if(home_dir == NULL) {
-            //Get home directory if it is not defined in the environment variable
-            home_dir = getpwuid(getuid())->pw_dir;
-            if(home_dir == NULL) {
-                SysError::Print("Could not find home directory!");
-                return -1;
-            }
-        }
-        #elif _WIN32
-          PWSTR* home_dir_ptr =
-            static_cast<PWSTR*>(CoTaskMemAlloc(sizeof(wchar_t)*MAX_PATH));
-          wchar_t home_dir_buf[MAX_PATH];
-          char char_buf[MAX_PATH];
-          if(SHGetKnownFolderPath(FOLDERID_Music,0,NULL,home_dir_ptr) != S_OK) {
-              SysError::Print("Could not find home directory!");
-              return -1;
+          const char* home_dir = getenv("HOME");
+          if(home_dir == NULL) {
+              //Get home directory if it is not defined in the environment variable
+              home_dir = getpwuid(getuid())->pw_dir;
+              if(home_dir == NULL) {
+                  SysError::Print("Could not find home directory!");
+                  return -1;
+              }
           }
-          wcscpy(home_dir_buf,*home_dir_ptr);
-          CoTaskMemFree(home_dir_ptr);
-          wcstombs(char_buf,home_dir_buf,MAX_PATH);
-          home_dir = char_buf;
-        #endif
-
-        music_dir = home_dir;
-        #ifdef __unix
+          
+          //It is assumed the music folder is in "$HOME/Music"
+          //The default music folder can be set via "$HOME/.config/user-dirs.dirs"
+          music_dir = home_dir;
           music_dir += "/Music/";
         #elif _WIN32
+          //On Windows all default folders can be found via a function
+          PWSTR* home_dir_ptr =
+            static_cast<PWSTR*>(CoTaskMemAlloc(sizeof(wchar_t)*MAX_PATH));
+          wchar_t music_dir_buf[MAX_PATH];
+          char char_buf[MAX_PATH];
+          if(SHGetKnownFolderPath(FOLDERID_Music,0,NULL,music_dir_ptr) != S_OK) {
+              SysError::Print("Could not find music directory!");
+              return -1;
+          }
+          
+          wcscpy(music_dir_buf,*music_dir_ptr);
+          CoTaskMemFree(music_dir_ptr);
+          wcstombs(char_buf,music_dir_buf,MAX_PATH);
+          
+          music_dir = char_buf;
           music_dir += "/";
         #endif
-        music_dir += track;
+        
+        track_dir += music_dir;
+        track_dir += track_name;
 
         Sound song;
-        std::cout << "Playing file: " << track << std::endl;
-        song.createSound(music_dir.c_str());
+        std::cout << "Playing file: " << track_name << std::endl;
+        song.createSound(track_dir.c_str());
         song.playSound(false);
 
         std::string msg;
@@ -112,7 +114,7 @@ int main( int argc, char *argv[]) {
             }
         }
 
-        std::cout << track << " stopped, closing." << std::endl;
+        std::cout << track_name << " stopped, closing." << std::endl;
         return 0;
     }
 }
