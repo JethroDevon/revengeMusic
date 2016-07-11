@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <iostream>
+#include <cwchar>
 
 //standard unix headers, need this to get present working directory
 #ifdef __unix
@@ -19,22 +20,24 @@
   #include <sys/types.h>
 #elif _WIN32
   #include <windows.h>
+  #include <Knownfolders.h>
+  #include <Shlobj.h>
 #else
   #ERROR "Incompatible OS"
 #endif
 
 int main( int argc, char *argv[]) {
-    
+
     #ifdef __unix
         errno = 0;
 	#elif _WIN32
 		SetLastError(0);
     #endif
-	
+
 	#ifdef RELEASE
 		SysError::Log();
 	#endif
-	
+
     Pipe pipe("/tmp/fifo");
 
     if(!pipe.isOnlyInstance()) {
@@ -68,16 +71,26 @@ int main( int argc, char *argv[]) {
             }
         }
         #elif _WIN32
-          char home_dir_buf[100];
-          if(GetEnvironmentVariable("HOMEPATH",home_dir_buf,100) == 0) {
+          PWSTR* home_dir_ptr =
+            static_cast<PWSTR*>(CoTaskMemAlloc(sizeof(wchar_t)*MAX_PATH));
+          wchar_t home_dir_buf[MAX_PATH];
+          char char_buf[MAX_PATH];
+          if(SHGetKnownFolderPath(FOLDERID_Music,0,NULL,home_dir_ptr) != S_OK) {
               SysError::Print("Could not find home directory!");
               return -1;
           }
-          home_dir = home_dir_buf;
+          wcscpy(home_dir_buf,*home_dir_ptr);
+          CoTaskMemFree(home_dir_ptr);
+          wcstombs(char_buf,home_dir_buf,MAX_PATH);
+          home_dir = char_buf;
         #endif
 
         music_dir = home_dir;
-        music_dir += "/Music/";
+        #ifdef __unix
+          music_dir += "/Music/";
+        #elif _WIN32
+          music_dir += "/";
+        #endif
         music_dir += track;
 
         Sound song;
