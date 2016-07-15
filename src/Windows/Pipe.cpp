@@ -19,7 +19,7 @@ Pipe::Pipe(const char* fifo_dir):
 
   //Initialize OVERLAPPED structure for async. pipes
   pipe_info = {0,0,0,0,NULL};
-  pipe_info.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+  pipe_info.hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 
   if(pipe_info.hEvent == NULL)
   { std::cout << "Failed to CreateEvent for pipe_info." << std::endl; }
@@ -40,7 +40,7 @@ Pipe::Pipe(const char* fifo_dir):
         pipeHandle = CreateNamedPipe(
           fifo,
           PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED,
-          PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_NOWAIT,
+          PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT,
           PIPE_UNLIMITED_INSTANCES,
           MAX_BUF,
           MAX_BUF,
@@ -69,7 +69,7 @@ bool Pipe::isOnlyInstance() {
 }
 
 //sends a message to the fifo
-void Pipe::SendMessage(const char* msg) 
+void Pipe::SendMessage(const char* msg)
 {
   bool ready = WaitNamedPipe(
     fifo,
@@ -105,10 +105,9 @@ void Pipe::SendMessage(const char* msg)
       switch(int err = GetLastError())
       {
         case ERROR_IO_PENDING:
-          switch(WaitForSingleObject(pipe_info.hEvent, 1000))
+          switch(WaitForSingleObject(pipe_info.hEvent, PIPE_TIMEOUT))
           {
             case WAIT_OBJECT_0:
-              //std::cout << "msg sent" << std::endl;
             break;
 
             case WAIT_TIMEOUT:
@@ -127,6 +126,7 @@ void Pipe::SendMessage(const char* msg)
       }
     }
 
+    DisconnectNamedPipe(pipeHandle);
     CloseHandle(pipeHandle);
     pipeHandle = NULL;
   }
@@ -136,7 +136,7 @@ void Pipe::SendMessage(const char* msg)
   }
 }
 
-std::string Pipe::GetMessage() 
+std::string Pipe::GetMessage()
 {
   std::memset(message, '\0', sizeof(message));
 
@@ -144,32 +144,46 @@ std::string Pipe::GetMessage()
 
   fSuccess = ConnectNamedPipe(pipeHandle,&pipe_info);
 
-  if(fSuccess == false) 
+  if(!fSuccess)
   {
-    switch(int err = GetLastError()) 
+    switch(int err = GetLastError())
     {
       case ERROR_PIPE_CONNECTED:
+      {
         //Client is connected
-        std::cout << ""; //This makes the GetMessage() work stably, somehow!
         fSuccess = true;
+      }
       break;
- 
+
       case ERROR_IO_PENDING:
-        //std::cout << "Pending!" << std::endl;
+      {
         //Wait PIPE_TIMEOUT_CONNECT number of seconds
-        if(WaitForSingleObject(pipe_info.hEvent, PIPE_TIMEOUT) == WAIT_OBJECT_0) 
-        { fSuccess = true; } 
-        else 
-        { CancelIo(pipeHandle); }
+        if(WaitForSingleObject(pipe_info.hEvent, PIPE_TIMEOUT) == WAIT_OBJECT_0)
+        { fSuccess = true; }
+      }
+      break;
+
+      case ERROR_NO_DATA:
+      {
+        Logger::PrintError("NO DATA");
+      }
       break;
 
       default:
+      {
+        if(err != 536)
+        {Logger::PrintError("Default");}
+      }
       break;
     }
   }
 
+
   if(fSuccess == false)
-  { return ""; }
+  {
+    DisconnectNamedPipe(pipeHandle);
+    return "";
+  }
 
   DWORD bytesread;
 
@@ -184,7 +198,6 @@ std::string Pipe::GetMessage()
   switch(WaitForSingleObject(pipe_info.hEvent, PIPE_TIMEOUT))
   {
       case WAIT_OBJECT_0:
-        //std::cout << "msg sent" << std::endl;
       break;
 
       case WAIT_TIMEOUT:
@@ -195,12 +208,8 @@ std::string Pipe::GetMessage()
         Logger::PrintError("WaitForSingleObject has failed.");
       break;
   }
-  //std::cout << "msg:" << std::string(message) << std::endl;
 
   DisconnectNamedPipe(pipeHandle);
 
   return std::string(message);
-
-  //std::cout << "Last Error:" << GetLastError() << std::endl;
-  //std::cout << "ReadFile from pipe failed." << std::endl;
 }

@@ -17,20 +17,6 @@ IF(NOT WIN32)
 ENDIF(NOT WIN32)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}" )
 
-#Find FMOD
-find_package(FMOD)
-IF(FMOD_FOUND)
-  include_directories(${FMOD_INCLUDE_DIRS})
-ELSEIF(NOT WIN32)
-  include_directories(${PROJECT_BINARY_DIR}/fmod/api/lowlevel/inc)
-ENDIF(FMOD_FOUND)
-
-#Find Boost
-find_package(Boost 1.58 COMPONENTS filesystem REQUIRED)
-IF(Boost_FOUND)
-  include_directories(${Boost_INCLUDE_DIRS})
-ENDIF(Boost_FOUND)
-
 IF(WIN32)
 add_executable(
   revengeMusic
@@ -39,6 +25,7 @@ add_executable(
   src/Sound.cpp
   src/Logger.cpp
 )
+set(Boost_USE_STATIC_LIBS ON)
 set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT "revengeMusic")
 ELSEIF(UNIX)
 add_executable(
@@ -50,6 +37,16 @@ add_executable(
 )
 ENDIF(WIN32)
 
+#Find Boost
+find_package(Boost 1.58 COMPONENTS filesystem REQUIRED)
+IF(Boost_FOUND)
+  include_directories(${Boost_INCLUDE_DIRS})
+  target_link_libraries(revengeMusic ${Boost_LIBRARIES})
+ENDIF(Boost_FOUND)
+
+#Find FMOD
+find_package(FMOD)
 IF(FMOD_FOUND)
-  target_link_libraries(revengeMusic ${Boost_LIBRARIES} ${FMOD_LIBRARIES})
+  include_directories(${FMOD_INCLUDE_DIRS})
+  target_link_libraries(revengeMusic  ${FMOD_LIBRARIES})
 ENDIF(FMOD_FOUND)
