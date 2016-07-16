@@ -1,0 +1,11 @@
+Package: revengemusic
+Version: 1.0.0
+Section: base
+Priority: optional
+Architecture: amd64
+Depends: 
+Maintainer: monsterjamp <monsterjamp@yahoo.com>
+Description: revengeMusic
+ Minimal command line based music player. It is meant to be an alternative 
+ to GUI based music player however it is planned to implement an option 
+ GUI mode.
