@@ -48,14 +48,31 @@ int main( int argc, char *argv[]) {
         }
     } else if(pipe.isOnlyInstance()) {
 
-        if(argv[1] == NULL) {
-            std::cerr << "Error track name invalid" << std::endl;
+        if(argc < 1) {
+            std::cerr << "Error, missing arguments." << std::endl;
             return -2;
         }
 
         std::string music_dir;
         std::string track_dir;
-        std::string track_name = argv[1];
+        std::string track_name;
+        std::string subdirectory;
+
+		//Check command line arguments
+        for(int i = 1; i < argc; ++i)
+        {
+          if(strcmp(argv[i],"-subdir") == 0)
+          {
+            ++i;
+            if(i < argc)
+            { 
+              subdirectory = argv[i]; 
+              subdirectory += "/";
+            }
+          }
+          else
+          { track_name = argv[i]; }
+        }
 
         //Get home directory of user
         #ifdef __unix
@@ -93,9 +110,11 @@ int main( int argc, char *argv[]) {
         #endif
 
         track_dir += music_dir;
+        track_dir += subdirectory;
         track_dir += track_name;
 
-        Sound song(music_dir.c_str());
+        Sound song(subdirectory == "" ? music_dir.c_str() : track_dir.c_str());
+
         song.init();
         std::cout << "Playing file: " << track_name << std::endl;
         song.play(track_dir.c_str());

@@ -17,7 +17,7 @@ Pipe::Pipe(const char* fifo_dir):
 
   const char* mutex_name = "/tmp/revengeMusic.pid";
 
-  //Initialize OVERLAPPED structure for asycn. pipes
+  //Initialize OVERLAPPED structure for async. pipes
   pipe_info = {0,0,0,0,NULL};
   pipe_info.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 

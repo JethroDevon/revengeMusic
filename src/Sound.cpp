@@ -149,6 +149,7 @@ void Sound::play_next() {
         playedFiles.clear();
     }
     
+
     do {
         accept_song = true;
         
@@ -166,7 +167,7 @@ void Sound::play_next() {
             for(it = filelist.begin(); it < filelist.end(); it++) {
                 int song_num = it - filelist.begin();
                 if(*it == this->getCurrentSong()) {
-                    if(song_num == filelist.size()) {
+                    if(song_num == filelist.size()-1) {
                         song_num = 0;
                     }
                     nextSong = filelist[song_num + 1];
@@ -178,15 +179,19 @@ void Sound::play_next() {
             }
         }
         
-        if(nextSong == this->getCurrentSong() && filelist.size() > 1) {
-            accept_song = false;
-        }
-        
+		if(playedFiles.size() > 1)
+		{
+			if(nextSong == this->getCurrentSong() && filelist.size() > 1) {
+				accept_song = false;
+			}
+		}
+
         for(it = playedFiles.begin(); it < playedFiles.end(); it++) {
             if(*it == nextSong) {
                 accept_song = false;
             }
         }
+
     } while(accept_song == false);
     
     filesystem::path track_dir(nextSong);
