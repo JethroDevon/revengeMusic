@@ -32,6 +32,7 @@ best case scenario is to mod rofi to play music files
 ./revengeMusic (--commands | <path>)
     commands:
         -h, --help      Shows this message
+        -subdir         Specify a specific folder within the Music directory
         kill            Exits revengeMusic
         play            Unpause song
         pause           Pause song
