@@ -48,11 +48,18 @@ int main( int argc, char *argv[]) {
     if(!mq.is_only_instance()) {
         if(argv[1] == NULL) {
             mq.SendMessage("kill");
-            return 0;
         } else {
             mq.SendMessage(argv[1]);
-            return 0;
         }
+
+        //Get message from player
+        std::string msg;
+        int timeout_ms = 16;
+        mq.GetMessage(msg, timeout_ms);
+        std::cout << msg << std::endl;
+
+        return 0;
+
     } else if(mq.is_only_instance()) {
 
         if(argc < 1) {
@@ -161,6 +168,8 @@ int main( int argc, char *argv[]) {
                 } else if(msg == "loop-file") {
                     std::cout << "Toggle File Loop" << std::endl;
                     song.setMode(LOOP_FILE);
+                } else {
+                    mq.SendMessage("Invalid");
                 }
             
             }
