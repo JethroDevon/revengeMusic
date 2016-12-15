@@ -5,6 +5,8 @@
 #include <fmod.hpp>
 #include "fmod_errors.h"
 
+#include <thread>
+#include <chrono>
 #include <string>
 #include <iostream>
 #include <cstring>
@@ -46,18 +48,29 @@ int main( int argc, char *argv[]) {
     MessageQueue mq("revengeMusic", MAX_MESSAGES, MAX_MESSAGE_BYTES);
 
     if(!mq.is_only_instance()) {
+        std::string msg;
         if(argv[1] == NULL) {
             mq.SendMessage("kill");
+        } else if(static_cast<std::string>(argv[1]) == "help") {
+            msg =
+                "\nUsage: revengeMusic (--commands | <path>)\n"
+                "\t-h, --help\tShows this message\n"
+                "\t-subdir\t\tSpecify a specific folder within the Music directory\n"
+                "\tkill\t\tExits revengeMusic\n"
+                "\tplay\t\tUnpause song\n"
+                "\tpause\t\tPause song\n"
+                "\tnext\t\tPlay next song (based on shuffle)\n"
+                "\tprev\t\tPlay previous song\n"
+                "\tshuffle\t\tToggles shuffle on/off\n"
+                "\tloop-file\tLoops the current song\n";
         } else {
             mq.SendMessage(argv[1]);
+            //Get message from player
+            int timeout_ms = 16;
+            mq.GetMessage(msg, timeout_ms);
         }
 
-        //Get message from player
-        std::string msg;
-        int timeout_ms = 16;
-        mq.GetMessage(msg, timeout_ms);
         std::cout << msg << std::endl;
-
         return 0;
 
     } else if(mq.is_only_instance()) {
@@ -171,7 +184,8 @@ int main( int argc, char *argv[]) {
                 } else {
                     mq.SendMessage("Invalid");
                 }
-            
+                //Delay to prevent sending message to self
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
         }
 
