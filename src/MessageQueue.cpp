@@ -1,8 +1,10 @@
 #include "MessageQueue.h"
+#include "Logger.h"
 
 #include <boost/interprocess/detail/os_file_functions.hpp>
 #include <boost/interprocess/ipc/message_queue.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/interprocess/exceptions.hpp>
 #include <boost/filesystem.hpp>
 
 #include <iostream>
@@ -42,8 +44,8 @@ MessageQueue::MessageQueue(const char* queue_name, int max_messages, int buffer_
                     );
         }
     } catch(interprocess_exception &ex) {
-        message_queue::remove(queue_name);
-        std::cout << ex.what() << std::endl;
+        Logger::Error error(Fatal, "Failed to create MessageQueue!");
+        Logger::PrintError(ex, error);
     }
 }
 
@@ -77,8 +79,8 @@ bool MessageQueue::GetMessage(std::string& msg, int timeout_ms) {
         }
     }
     catch(interprocess_exception &ex) {
-        message_queue::remove(queue_name);
-        std::cout << ex.what() << std::endl;
+        Logger::Error error(Recoverable, "Could not receive message!");
+        Logger::PrintError(ex, error);
         return false;
     }
 }
@@ -97,8 +99,8 @@ bool MessageQueue::GetMessage(std::string& msg, message_queue::size_type recvd_s
         }
     }
     catch(interprocess_exception &ex) {
-        message_queue::remove(queue_name);
-        std::cout << ex.what() << std::endl;
+        Logger::Error error(Recoverable, "Could not receive message!");
+        Logger::PrintError(ex, error);
         return false;
     }
 }
@@ -108,8 +110,8 @@ bool MessageQueue::SendMessage(const char* msg) {
         queue->send(msg, std::strlen(msg)+1, 0);
     }
     catch(interprocess_exception &ex) {
-        message_queue::remove(queue_name);
-        std::cout << ex.what() << std::endl;
+        Logger::Error error(Recoverable, "Could not send message!");
+        Logger::PrintError(ex, error);
     }
     return true;
 }

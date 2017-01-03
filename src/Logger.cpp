@@ -1,5 +1,7 @@
 #include "Logger.h"
 
+#include <boost/interprocess/exceptions.hpp>
+
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -11,6 +13,7 @@
 #elif _WIN32
     #include <windows.h>
 #endif
+
 
 static std::string LastErrorToString() {
     #ifdef __unix
@@ -51,30 +54,54 @@ static std::string LastErrorToString() {
 }
 
 namespace Logger {
-    std::stringstream error_msg;
     bool error_set = false;
-	bool logging = false;
+    Logger::Error last_error(None, "No Error");
 
-    void SetError(std::string msg) {
-        error_msg << msg << "\n"
-                << "\t" << LastErrorToString();
+    void SetError(Logger::Error& error) {
+        error.msg << "\n\t" << LastErrorToString();
+        //Set error type based on last system error
         error_set = true;
+        last_error = error;
     }
     
-    void PrintError(std::string msg) {
-        if(!error_set)
-            SetError(msg);
-        std::cerr << error_msg.str() << std::endl;
+    void PrintError(Logger::Error error = Logger::Error()) {
+        if(error.type == Unknown) {
+            SetError(error);
+        }
+        else if(error_set == false) {
+            error_set = true;
+            last_error = error;
+        }
+
+        std::cerr << error.msg.str() << std::endl;
     }
     
-    void Log() {
-		if(!logging) {
-			logging = true;
-			freopen("error.txt", "w", stderr);
-		}
-		else {
-			logging = false;
-			fclose(stderr);
-		}
+    void PrintError(boost::interprocess::interprocess_exception &ex, Logger::Error error) {
+        if(error_set == false) {
+            error_set = true;
+            last_error = error;
+        }
+
+        std::cerr << error.msg.str() << "\n" << "\tError: " << ex.what() << std::endl;
+    }
+
+    void PrintError(boost::filesystem::filesystem_error &ex, Logger::Error error) {
+        if(error_set == false) {
+            error_set = true;
+            last_error = error;
+        }
+
+        std::cerr << error.msg.str() << "\n" << "\tError: " << ex.what() << std::endl;
+    }
+
+    void SetLog(bool logging) {
+        if(logging) {
+            freopen("error.txt", "w", stderr);
+            freopen("log.txt", "w", stdout);
+        }
+        else {
+            fclose(stderr);
+            fclose(stdout);
+        }
     }
 }
