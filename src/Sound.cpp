@@ -1,4 +1,5 @@
 #include "Sound.h"
+#include "Logger.h"
 
 #include <fmod.hpp>
 #include "boost/filesystem/operations.hpp"
@@ -53,23 +54,29 @@ void Sound::getFileList(const char* music_dir) {
                     }
                 }
             } else {
-                std::cout << dir << " is not supported or corrupt" << std::endl;
+                Logger::Error error;
+                error.type = Fatal;
+                error.msg << dir << " is not supported or corrupt";
+                Logger::PrintError(error);
             }
         } else {
-            
-            std::cout << dir << " does not exist\n";
+            Logger::Error error;
+            error.type = Fatal;
+            error.msg << dir << " does not exist";
+            Logger::PrintError(error);
         }
     }
-    catch (const filesystem::filesystem_error& error) {
-        std::cout << error.what() << '\n';
+    catch(filesystem::filesystem_error &ex) {
+        Logger::Error error(Fatal, "Failed to get list of tracks!");
+        Logger::PrintError(ex, error);
     }
 }
 
 bool Sound::init() {
     
     if(FMOD::System_Create(&m_pSystem) != FMOD_OK) {
-
-        std::cout << "Could not create sound system." << std::endl;
+        Logger::Error error(Fatal, "Could not create sound system!");
+        Logger::PrintError(ex, error);
         return false;
     }
     
@@ -77,8 +84,8 @@ bool Sound::init() {
     m_pSystem->getNumDrivers(&driverCount);
     
     if(driverCount == 0) {
-        
-        std::cout << "No sound drivers found!" << std::endl;
+        Logger::Error error(Fatal, "No sound drivers found!");
+        Logger::PrintError(ex, error);
         return false;
     }
     
@@ -173,19 +180,20 @@ void Sound::play_next() {
                     }
                     nextSong = filelist[song_num + 1];
                 } else if(song_num > filelist.size()) {
-                    std::cerr << "Could not find next song!" << std::endl;
+                    Logger::Error error(Recoverable, "Could not find next song!");
+                    Logger::PrintError(ex, error);
                     song_num = 0;
                     nextSong = filelist[song_num];
                 }
             }
         }
         
-		if(playedFiles.size() > 1)
-		{
-			if(nextSong == this->getCurrentSong() && filelist.size() > 1) {
-				accept_song = false;
-			}
-		}
+        if(playedFiles.size() > 1)
+        {
+            if(nextSong == this->getCurrentSong() && filelist.size() > 1) {
+                accept_song = false;
+            }
+        }
 
         for(it = playedFiles.begin(); it < playedFiles.end(); it++) {
             if(*it == nextSong) {

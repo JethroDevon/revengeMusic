@@ -42,14 +42,14 @@ int main( int argc, char *argv[]) {
     #endif
 
     #ifdef RELEASE
-      SysError::Log();
+      SysError::SetLog(true);
     #endif
 
     MessageQueue mq("revengeMusic", MAX_MESSAGES, MAX_MESSAGE_BYTES);
 
     if(!mq.is_only_instance()) {
         std::string msg;
-        if(argv[1] == NULL) {
+        if(strcmp(argv[1],"") == 0) {
             mq.SendMessage("kill");
         } else if(static_cast<std::string>(argv[1]) == "help") {
             msg =
@@ -108,7 +108,8 @@ int main( int argc, char *argv[]) {
               //Get home directory if it is not defined in the environment variable
               home_dir = getpwuid(getuid())->pw_dir;
               if(home_dir == NULL) {
-                  Logger::PrintError("Could not find home directory!");
+                  Logger::Error error(Fatal, "Could not find home directory!");
+                  Logger::PrintError(error);
                   return -1;
               }
           }
@@ -150,6 +151,16 @@ int main( int argc, char *argv[]) {
         bool running = true;
 
         while(running) {
+
+            if(Logger::error_set) {
+                if(Logger::last_error.type == ErrorType::Fatal) {
+                    std::cout << "A fatal error has occured,"
+                              << "terminating program!" << std::endl;
+                    return 1;
+                } else {
+                    Logger::error_set = false;
+                }
+            }
 
             if(!song.isPlaying()) {
                 song.play_next();
