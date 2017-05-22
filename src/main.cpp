@@ -49,7 +49,7 @@ int main( int argc, char *argv[]) {
 
     if(!mq.is_only_instance()) {
         std::string msg;
-        if(argv[1] == NULL) {
+        if(strcmp(argv[1],"") == 0) {
             mq.SendMessage("kill");
         } else if(static_cast<std::string>(argv[1]) == "help") {
             msg =
