@@ -45,28 +45,13 @@ int main( int argc, char *argv[]) {
       SysError::SetLog(true);
     #endif
 
-    std::string argv_str[argc];
-
-    //Store arguments in string
-    if(argc > 1) {
-        for(int i = 0; i < argc; ++i) {
-            argv_str[i] = argv[i];
-        }
-    }
-
     MessageQueue mq("revengeMusic", MAX_MESSAGES, MAX_MESSAGE_BYTES);
 
     if(!mq.is_only_instance()) {
         std::string msg;
-        std::string cmd;
-
         if(argc == 1) {
-            cmd = "kill";
-        } else {
-            cmd = argv_str[1];
-        }
-
-        if(cmd == "-h" || cmd == "--help") {
+            mq.SendMessage("kill");
+        } else if(static_cast<std::string>(argv[1]) == "help") {
             msg =
                 "\nUsage: revengeMusic (--commands | <path>)\n"
                 "\t-h, --help\tShows this message\n"
@@ -79,7 +64,7 @@ int main( int argc, char *argv[]) {
                 "\tshuffle\t\tToggles shuffle on/off\n"
                 "\tloop-file\tLoops the current song\n";
         } else {
-            mq.SendMessage(cmd.c_str());
+            mq.SendMessage(argv[1]);
             //Get message from player
             int timeout_ms = 16;
             mq.GetMessage(msg, timeout_ms);
@@ -89,45 +74,31 @@ int main( int argc, char *argv[]) {
         return 0;
 
     } else if(mq.is_only_instance()) {
+
+        if(argc < 1) {
+            std::cerr << "Error, missing arguments." << std::endl;
+            return -2;
+        }
+
         std::string music_dir;
         std::string track_dir;
         std::string track_name;
         std::string subdirectory;
 
-        //Check command line arguments
-        for(int i = 1; i < argc; ++i) {
-            if(argv_str[i] == "-h" || argv_str[i] == "--help") {
-                //Show usage message and exit
-                std::string msg =
-                    "\nUsage: revengeMusic (--commands | <path>)\n"
-                    "\t-h, --help\tShows this message\n"
-                    "\t-subdir\t\tSpecify a specific folder"
-                        " within the Music directory\n"
-                    "\tkill\t\tExits revengeMusic\n"
-                    "\tplay\t\tUnpause song\n"
-                    "\tpause\t\tPause song\n"
-                    "\tnext\t\tPlay next song (based on shuffle)\n"
-                    "\tprev\t\tPlay previous song\n"
-                    "\tshuffle\t\tToggles shuffle on/off\n"
-                    "\tloop-file\tLoops the current song\n";
-
-                std::cout << msg << std::endl;
-
-                return 0;
+		//Check command line arguments
+        for(int i = 1; i < argc; ++i)
+        {
+          if(strcmp(argv[i],"-subdir") == 0)
+          {
+            ++i;
+            if(i < argc)
+            { 
+              subdirectory = argv[i]; 
+              subdirectory += "/";
             }
-
-            if(argv_str[i] == "-subdir")
-            {
-                ++i;
-                if(i < argc)
-                {
-                  subdirectory = argv_str[i];
-                  subdirectory += "/";
-                }
-            }
-            else {
-                track_name = argv_str[i];
-            }
+          }
+          else
+          { track_name = argv[i]; }
         }
 
         //Get home directory of user
