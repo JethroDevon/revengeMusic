@@ -196,8 +196,6 @@ int main( int argc, char *argv[]) {
                 } else {
                     mq.SendMessage("Invalid");
                 }
-                //Delay to prevent sending message to self
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
         }
 

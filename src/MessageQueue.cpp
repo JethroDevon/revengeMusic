@@ -109,6 +109,8 @@ bool MessageQueue::GetMessage(std::string& msg, message_queue::size_type recvd_s
 bool MessageQueue::SendMessage(const char* msg) {
     try {
         queue->send(msg, std::strlen(msg)+1, 0);
+        //Delay to prevent sending message to self
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
     catch(interprocess_exception &ex) {
         Logger::Error error(ErrorType::Recoverable, "Could not send message!");
