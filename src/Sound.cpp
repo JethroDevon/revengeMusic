@@ -172,7 +172,7 @@ void Sound::play_next() {
         //how to change the order is not known
         else {
             for(it = filelist.begin(); it < filelist.end(); it++) {
-                int song_num = it - filelist.begin();
+                unsigned int song_num = it - filelist.begin();
                 if(*it == this->getCurrentSong()) {
                     if(song_num == filelist.size()-1) {
                         playedFiles.clear();
