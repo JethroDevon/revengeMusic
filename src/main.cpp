@@ -54,9 +54,10 @@ int main( int argc, char *argv[]) {
         }
     }
 
-    MessageQueue mq("revengeMusic", MAX_MESSAGES, MAX_MESSAGE_BYTES);
+    MessageQueue mq_to_client("revengeMusicToClient", MAX_MESSAGES, MAX_MESSAGE_BYTES);
+    MessageQueue mq_to_player("revengeMusicToPlayer", MAX_MESSAGES, MAX_MESSAGE_BYTES);
 
-    if(!mq.is_only_instance()) {
+    if(!mq_to_player.is_only_instance()) {
         std::string msg;
         std::string cmd;
 
@@ -79,16 +80,16 @@ int main( int argc, char *argv[]) {
                 "\tshuffle\t\tToggles shuffle on/off\n"
                 "\tloop-file\tLoops the current song\n";
         } else {
-            mq.SendMessage(cmd.c_str());
+            mq_to_player.SendMessage(cmd.c_str());
             //Get message from player
             int timeout_ms = 16;
-            mq.GetMessage(msg, timeout_ms);
+            mq_to_client.GetMessage(msg, timeout_ms);
         }
 
         std::cout << msg << std::endl;
         return 0;
 
-    } else if(mq.is_only_instance()) {
+    } else if(mq_to_player.is_only_instance()) {
         std::string music_dir;
         std::string track_dir;
         std::string track_name;
@@ -196,7 +197,7 @@ int main( int argc, char *argv[]) {
                 song.play_next();
             }
             
-            if(mq.GetMessage(msg)) {
+            if(mq_to_player.GetMessage(msg)) {
 
                 //Events
                 if(msg == "none") {
@@ -223,10 +224,8 @@ int main( int argc, char *argv[]) {
                     std::cout << "Toggle File Loop" << std::endl;
                     song.setMode(LOOP_FILE);
                 } else {
-                    mq.SendMessage("Invalid");
+                    mq_to_client.SendMessage("Invalid");
                 }
-                //Delay to prevent sending message to self
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
         }
 
