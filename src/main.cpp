@@ -48,10 +48,28 @@ int main( int argc, char *argv[]) {
 
     std::vector<std::string> argv_str;
 
-    //Store arguments in vector of string
     if(argc > 1) {
+        //Store arguments in vector of string
         for(int i = 0; i < argc; ++i) {
             argv_str.emplace_back(argv[i]);
+        }
+
+        //Check for simple commands like --help or --version
+        if(argv_str[1] == "-h" || argv_str[1] == "--help") {
+            std::string msg =
+                "\nUsage: revengeMusic (--commands | <path>)\n"
+                "\t-h, --help\tShows this message\n"
+                "\t-subdir\t\tSpecify a specific folder within the Music directory\n"
+                "\tkill\t\tExits revengeMusic\n"
+                "\tplay\t\tUnpause song\n"
+                "\tpause\t\tPause song\n"
+                "\tnext\t\tPlay next song (based on shuffle)\n"
+                "\tprev\t\tPlay previous song\n"
+                "\tshuffle\t\tToggles shuffle on/off\n"
+                "\tloop-file\tLoops the current song\n";
+
+            std::cout << msg << std::endl;
+            return 0;
         }
     }
 
@@ -68,24 +86,10 @@ int main( int argc, char *argv[]) {
             cmd = argv_str[1];
         }
 
-        if(cmd == "-h" || cmd == "--help") {
-            msg =
-                "\nUsage: revengeMusic (--commands | <path>)\n"
-                "\t-h, --help\tShows this message\n"
-                "\t-subdir\t\tSpecify a specific folder within the Music directory\n"
-                "\tkill\t\tExits revengeMusic\n"
-                "\tplay\t\tUnpause song\n"
-                "\tpause\t\tPause song\n"
-                "\tnext\t\tPlay next song (based on shuffle)\n"
-                "\tprev\t\tPlay previous song\n"
-                "\tshuffle\t\tToggles shuffle on/off\n"
-                "\tloop-file\tLoops the current song\n";
-        } else {
-            mq_to_player.SendMessage(cmd.c_str());
-            //Get message from player
-            int timeout_ms = 16;
-            mq_to_client.GetMessage(msg, timeout_ms);
-        }
+        mq_to_player.SendMessage(cmd.c_str());
+        //Get message from player
+        int timeout_ms = 16;
+        mq_to_client.GetMessage(msg, timeout_ms);
 
         std::cout << msg << std::endl;
         return 0;
@@ -98,26 +102,6 @@ int main( int argc, char *argv[]) {
 
         //Check command line arguments
         for(int i = 1; i < argc; ++i) {
-            if(argv_str[i] == "-h" || argv_str[i] == "--help") {
-                //Show usage message and exit
-                std::string msg =
-                    "\nUsage: revengeMusic (--commands | <path>)\n"
-                    "\t-h, --help\tShows this message\n"
-                    "\t-subdir\t\tSpecify a specific folder"
-                        " within the Music directory\n"
-                    "\tkill\t\tExits revengeMusic\n"
-                    "\tplay\t\tUnpause song\n"
-                    "\tpause\t\tPause song\n"
-                    "\tnext\t\tPlay next song (based on shuffle)\n"
-                    "\tprev\t\tPlay previous song\n"
-                    "\tshuffle\t\tToggles shuffle on/off\n"
-                    "\tloop-file\tLoops the current song\n";
-
-                std::cout << msg << std::endl;
-
-                return 0;
-            }
-
             if(argv_str[i] == "-subdir")
             {
                 ++i;
