@@ -7,8 +7,12 @@ ELSE()
   ENDIF()
 ENDIF()
 
-project (revengeMusic CXX)
-set (projectVersion 1.0.0)
+project ("revengeMusic"
+           LANGUAGES CXX
+           VERSION 0.9.0)
+
+configure_file("${CMAKE_SOURCE_DIR}/include/config.h.in"
+               "${CMAKE_SOURCE_DIR}/include/config.h")
 
 include_directories("${CMAKE_SOURCE_DIR}/include/")
 

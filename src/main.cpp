@@ -1,6 +1,7 @@
 #include "Sound.h"
 #include "MessageQueue.h"
 #include "Logger.h"
+#include "config.h"
 
 #include <fmod.hpp>
 #include "fmod_errors.h"
@@ -59,6 +60,7 @@ int main( int argc, char *argv[]) {
             std::string msg =
                 "\nUsage: revengeMusic (--commands | <path>)\n"
                 "\t-h, --help\tShows this message\n"
+                "\t-v, --version\tShow version number\n"
                 "\t-subdir\t\tSpecify a specific folder within the Music directory\n"
                 "\tkill\t\tExits revengeMusic\n"
                 "\tplay\t\tUnpause song\n"
@@ -69,6 +71,9 @@ int main( int argc, char *argv[]) {
                 "\tloop-file\tLoops the current song\n";
 
             std::cout << msg << std::endl;
+            return 0;
+        } else if(argv_str[1] == "-v" || argv_str[1] == "--version") {
+            std::cout << PROJECT_NAME << " v" << PROJECT_VERSION << std::endl;
             return 0;
         }
     }
