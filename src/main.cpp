@@ -8,6 +8,7 @@
 #include <thread>
 #include <chrono>
 #include <string>
+#include <vector>
 #include <iostream>
 #include <cstring>
 
@@ -45,12 +46,12 @@ int main( int argc, char *argv[]) {
       SysError::SetLog(true);
     #endif
 
-    std::string argv_str[argc];
+    std::vector<std::string> argv_str;
 
-    //Store arguments in string
+    //Store arguments in vector of string
     if(argc > 1) {
         for(int i = 0; i < argc; ++i) {
-            argv_str[i] = argv[i];
+            argv_str.emplace_back(argv[i]);
         }
     }
 
