@@ -176,7 +176,11 @@ int main( int argc, char *argv[]) {
         }
 
         std::cout << "Playing file: " << track_name << std::endl;
-        song.play(track_dir.c_str());
+        if(track_name == "") {
+            song.play();
+        } else {
+            song.play(track_dir.c_str());
+        }
 
         std::string msg;
         bool running = true;

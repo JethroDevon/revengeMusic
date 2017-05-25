@@ -145,24 +145,58 @@ void Sound::play(const char* pFile) {
 
     newSound->release();
     result = m_pSystem->createStream(pFile, FMOD_DEFAULT, 0, &newSound);
-    //If createStream() failed, recheck the files in the directory
     if (result != FMOD_OK) {
-        unsigned int old_size = filelist.size();
+        switch(result) {
+            case FMOD_ERR_FILE_NOTFOUND: {
+                Logger::Error error(ErrorType::Recoverable,
+                                    "A deleted file was loaded!");
+                Logger::PrintError(error);
 
-        this->getFileList(music_dir);
-        if(filelist.size() == 0) {
-            return;
-        } else if(old_size != filelist.size()) {
-            Logger::Error error(ErrorType::Recoverable, "A deleted file was loaded!");
-            Logger::PrintError(error);
+                //Reload filelist
+                this->getFileList(music_dir);
+                if(filelist.size() == 0) {
+                    return;
+                }
 
-            //Find deleted file and remove it from playedFiles
-            auto it = std::find(playedFiles.begin(), playedFiles.end(), pFile);
-            if(it != playedFiles.end()) {
-                playedFiles.erase(it);
+                //Find deleted file and remove it from playedFiles
+                auto it =
+                    std::find(playedFiles.begin(), playedFiles.end(), pFile);
+                if(it != playedFiles.end()) {
+                    playedFiles.erase(it);
+                }
+
+                this->play_next();
+
+                return;
+                break;
             }
+            case FMOD_ERR_FORMAT: {
+                Logger::Error error(ErrorType::Recoverable,
+                                    "File is not proper audio file?");
+                Logger::PrintError(error);
 
-            this->play_next();
+                //For now, remove file from filelist
+                auto it =
+                    std::find(filelist.begin(), filelist.end(), pFile);
+                if(it != filelist.end()) {
+                    filelist.erase(it);
+                }
+
+                this->play_next();
+
+                return;
+                break;
+            }
+            default: {
+                std::string msg = "createStream() returned ";
+                msg += std::to_string(result);
+
+                Logger::Error error(ErrorType::Fatal, msg);
+                Logger::PrintError(error);
+                
+                return;
+                break;
+            }
         }
     }
     m_pSystem->playSound(newSound, 0, false, &channel);
