@@ -21,7 +21,12 @@ best case scenario is to mod rofi to play music files
 
 ## Compiling
   - **For Linux**
-    - Run `./build.sh`
+    ``` bash
+    mkdir -p build/
+    cd build
+    cmake -DCMAKE_BUILD_TYPE=Debug ..
+    make
+    ```
   - **For Windows**
     - Make sure cmake and msbuild is in PATH
     - Run `build.cmd`
