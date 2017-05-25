@@ -70,6 +70,11 @@ void Sound::getFileList(const char* music_dir) {
         Logger::Error error(ErrorType::Fatal, "Failed to get list of tracks!");
         Logger::PrintError(ex, error);
     }
+
+    if(filelist.size() == 0) {
+        Logger::Error error(ErrorType::Fatal, "No tracks in directory!");
+        Logger::PrintError(error);
+    }
 }
 
 bool Sound::init() {

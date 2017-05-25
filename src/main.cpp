@@ -163,8 +163,18 @@ int main( int argc, char *argv[]) {
         track_dir += track_name;
 
         Sound song(subdirectory == "" ? music_dir.c_str() : track_dir.c_str());
-
         song.init();
+
+        if(Logger::error_set) {
+                if(Logger::last_error.type == ErrorType::Fatal) {
+                    std::cout << "A fatal error has occured,"
+                              << "terminating program!" << std::endl;
+                    return 1;
+                } else {
+                    Logger::error_set = false;
+                }
+        }
+
         std::cout << "Playing file: " << track_name << std::endl;
         song.play(track_dir.c_str());
 
