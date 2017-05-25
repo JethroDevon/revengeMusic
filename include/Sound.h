@@ -39,6 +39,7 @@ class Sound {
             bool shuffle;
         } mode;
         
+        const char* music_dir;
         std::vector<std::string> filelist;
         std::vector<std::string> playedFiles;
         FMOD::Channel *channel;

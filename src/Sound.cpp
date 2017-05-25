@@ -14,7 +14,7 @@
 using namespace boost;
 
 Sound::Sound(const char* music_dir, int flags) {
-    
+
     channel = nullptr;
     newSound = nullptr;
     m_pSystem = nullptr;
@@ -36,8 +36,10 @@ Sound::~Sound() {
 }
 
 void Sound::getFileList(const char* music_dir) {
-    
+
+    this->music_dir = music_dir;
     filesystem::path dir(music_dir);
+    filelist.clear();
 
     try {
         if (filesystem::exists(dir)) {
@@ -138,9 +140,31 @@ void Sound::play() {
 }
 
 void Sound::play(const char* pFile) {
-    
+
+    FMOD_RESULT result;
+
     newSound->release();
-    m_pSystem->createStream(pFile, FMOD_DEFAULT, 0, &newSound);
+    result = m_pSystem->createStream(pFile, FMOD_DEFAULT, 0, &newSound);
+    //If createStream() failed, recheck the files in the directory
+    if (result != FMOD_OK) {
+        unsigned int old_size = filelist.size();
+
+        this->getFileList(music_dir);
+        if(filelist.size() == 0) {
+            return;
+        } else if(old_size != filelist.size()) {
+            Logger::Error error(ErrorType::Recoverable, "A deleted file was loaded!");
+            Logger::PrintError(error);
+
+            //Find deleted file and remove it from playedFiles
+            auto it = std::find(playedFiles.begin(), playedFiles.end(), pFile);
+            if(it != playedFiles.end()) {
+                playedFiles.erase(it);
+            }
+
+            this->play_next();
+        }
+    }
     m_pSystem->playSound(newSound, 0, false, &channel);
     
     playedFiles.push_back(pFile);
@@ -156,7 +180,7 @@ void Sound::play_next() {
     std::string nextSong;
     bool accept_song;
     std::vector<std::string>::iterator it;
-    
+
     if(filelist.size() == playedFiles.size()) {
         playedFiles.clear();
     }
