@@ -19,7 +19,7 @@ Sound::Sound(const char* music_dir, int flags) {
     newSound = nullptr;
     m_pSystem = nullptr;
     
-    srand(time(NULL));
+    srand(static_cast<unsigned int>(time(NULL)));
     
     //initial options
     mode.loop_file  = (LOOP_FILE & flags);
