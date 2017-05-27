@@ -119,11 +119,11 @@ int main( int argc, char *argv[]) {
         std::string subdirectory;
 
         //Check command line arguments
-        for(int i = 1; i < argc; ++i) {
+        for(unsigned int i = 1; i < argv_str.size(); ++i) {
             if(argv_str[i] == "-subdir")
             {
                 ++i;
-                if(i < argc)
+                if(i < argv_str.size())
                 {
                   subdirectory = argv_str[i];
                   subdirectory += "/";
