@@ -1,13 +1,11 @@
 # revengeMusic
 
-Written in C++
+Written in C++11
 
-A command line music program for linux,
-Designed not to play two tracks at once and to be easily used in shell programs, this way key shortcuts and option flags
-could allow a user to find a creative uses, I intend to release a gui mode and sound file search and create a music program with
-similar implementation to rofi.
+A command line music program for Windows/Linux.
+Inter-process communication [(IPC)](https://en.wikipedia.org/wiki/Inter-process_communication) is utilized to ensure only one instance of revengeMusic is used at a time. When a second instance of revengeMusic is launched (Client), it's used to command the first instance (Player). Designed for use with shell, it enables the user to find creative uses by combining shortcut keys and program arguments.
 
-best case scenario is to mod rofi to play music files
+Inspired by rofi; one of the goals is to work seamlessly with rofi.
 
 # Building
 ## Dependencies
@@ -16,7 +14,8 @@ best case scenario is to mod rofi to play music files
       - Install the 'low level' headers to `/usr/include/fmodex/`
       - Install the 'low level' libraries to `/usr/lib/`
     - **For Windows**
-      - FMOD has it's own installer, nothing needs to be done manually
+      - FMOD has its own installer, nothing needs to be done manually
+  - [Boost 1.58.0](http://www.boost.org/users/download/)
   - [CMake 3.4](https://cmake.org/download/) (recommended)
 
 ## Compiling
