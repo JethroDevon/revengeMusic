@@ -25,6 +25,7 @@
   #include <Knownfolders.h>
   #include <Shlobj.h>
   #include <cwchar>
+  #include "WindowsUtility.h"
   #undef GetMessage
   #undef SendMessage
 #else
@@ -37,9 +38,28 @@
 
 int main( int argc, char *argv[]) {
 
+    std::vector<std::string> argv_str;
+    
     #ifdef __unix
+      //Store arguments in vector of string
+      for(int i = 0; i < argc; ++i) {
+          argv_str.emplace_back(argv[i]);
+      }
+      
       errno = 0;
     #elif _WIN32
+      std::vector<wchar_t*> windows_args;
+      
+      if(!GetCommandLineToArgs(windows_args)) {
+          Logger::Error error(ErrorType::Fatal, "Could not interpret command line arguments!");
+          Logger::PrintError(error);
+          return -1;
+      }
+      
+      for(wchar_t* UTF16str : windows_args) {
+          argv_str.emplace_back(UTF16toUTF8string(UTF16str));
+      }
+      
       SetLastError(0);
     #endif
 
@@ -47,14 +67,7 @@ int main( int argc, char *argv[]) {
       SysError::SetLog(true);
     #endif
 
-    std::vector<std::string> argv_str;
-
-    if(argc > 1) {
-        //Store arguments in vector of string
-        for(int i = 0; i < argc; ++i) {
-            argv_str.emplace_back(argv[i]);
-        }
-
+    if(argv_str.size() > 1) {
         //Check for simple commands like --help or --version
         if(argv_str[1] == "-h" || argv_str[1] == "--help") {
             std::string msg =
@@ -106,11 +119,11 @@ int main( int argc, char *argv[]) {
         std::string subdirectory;
 
         //Check command line arguments
-        for(int i = 1; i < argc; ++i) {
+        for(unsigned int i = 1; i < argv_str.size(); ++i) {
             if(argv_str[i] == "-subdir")
             {
                 ++i;
-                if(i < argc)
+                if(i < argv_str.size())
                 {
                   subdirectory = argv_str[i];
                   subdirectory += "/";
